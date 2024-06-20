@@ -1,0 +1,53 @@
+---
+
+- hosts: all
+  become: true
+  pre_tasks:
+
+  - name: install updates centos
+    tags: always
+    dnf:
+      update_only: yes
+      update_cahe: yes
+    when: ansible_distribution == "CentOS"
+
+  - name: install updates debian
+    tags: always
+    apt:
+      update_only: yes
+      update_cahe: yes
+    when: ansible_distribution in ["Debian", "Ubuntu"]
+
+- hosts: web_servers
+  become: true
+  tasks:
+  
+  - name: install neofetch
+    tags : install
+    apt:
+      name: neofetch=6.0.0-2
+    when: ansible_distribution in ["Debian", "Ubuntu"]
+
+  - name: install php support for apache
+    tags : apache,apache2,ubuntu,debian
+    apt:
+      name: libapache2-mod-php
+      state: latest
+
+  - name: install php support for apache(centos)
+    tags : apache,centos
+    dnf:
+      name: php
+      state: latest
+    when: ansible_distribution == "CentOS"
+
+  - name: remove php support for apache
+    apt:
+      name: libapache2-mod-php
+      state: absent
+
+  - name: remove php support for apache(centos)
+    dnf:
+      name: libapache2-mod-php
+      state: absent
+    when: ansible_distribution == "CentOS"

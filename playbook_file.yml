@@ -1,0 +1,27 @@
+---
+
+- hosts: all
+  become: true
+  tasks:
+
+  - name: copy sample config file
+    tags: config
+    copy:
+      src: sample.cfg
+      dest: /home/chip/sample_copy.cfg
+      owner: chip
+      group: chip
+      mode: 0664
+
+  - name: update config
+    tags: centos
+    lineinfile:
+      path: /home/chip/sample_copy.cfg
+      regexp: '^msg:'
+      line: 'msg: new config'
+    register: httpd_config
+
+  - name: restart service
+    service: httpd
+    state: restarted
+    when: httpd_config.changed
